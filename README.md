@@ -43,7 +43,7 @@ The resulting logs and model files will be saved in `experiments/ppo/PointLtl2-v
 
 We provide several evaluation scripts in `src/evaluation`. To simulate a trained model with a given LTL formula and output several statistics such as success rate (SR) and average number of steps (μ), run
 ```bash
-PYTHONPATH=src/ python src/evaluation/simulate.py --env PointLtl2-v0 --exp test --seed 1 --formula "(!blue U green) & F yellow" --finite --deterministic
+PYTHONPATH=src/ python src/evaluation/simulate.py --env PointLtl2-v0 --exp test --seed 1 --formula '(!blue U green) & F yellow' --finite --deterministic
 ```
 The script also supports a `--render` flag to visualise the simulation in real time. Alternatively, we provide the scripts `draw_zone_trajectories.py` and `draw_flat_trajectories.py` to visualise the trajectories of the agents in the _ZoneEnv_ and _FlatWorld_ environments, respectively.
 
