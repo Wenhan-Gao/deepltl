@@ -57,6 +57,7 @@ class SequenceWrapper(gymnasium.Wrapper):
     def apply_epsilon_action(self):
         assert self.goal_seq[self.num_reached][0] == LDBASequence.EPSILON
         self.num_reached += 1
+        # print('-'*20,'Epsilon action applied','-'*20)
         return self.obs, 0.0, False, False, self.info
 
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[

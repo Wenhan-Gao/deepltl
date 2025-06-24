@@ -22,6 +22,8 @@ import numpy as np
 
 def get_task_class_name(task_id):
     """Help to translate task_id into task_class_name."""
+    if 'LtlBiasTest0' in task_id:
+        return 'LtlBiasTest0'
     if '.fixed' in task_id:
         class_name = 'LtlFixed'
         return class_name

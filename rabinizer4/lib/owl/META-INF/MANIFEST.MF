@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Title: owl
+Main-Class: owl.run.DefaultCli
+Implementation-Version: 1.2.0-SNAPSHOT
+

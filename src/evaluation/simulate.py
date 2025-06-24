@@ -12,13 +12,16 @@ from config import model_configs
 from sequence.search import ExhaustiveSearch
 from utils.model_store import ModelStore
 import argparse
+from preprocessing.batched_sequences import BatchedReachAvoidSequences, ReachAvoidSet
+
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, choices=['PointLtl2-v0', 'LetterEnv-v0', 'FlatWorld-v0'], default='PointLtl2-v0')
+    parser.add_argument('--env', type=str, choices=['PointLtl2-v0', 'LetterEnv-v0', 'FlatWorld-v0', 'PointLtlBiasTest0-v0'], default='PointLtl2-v0')
     parser.add_argument('--exp', type=str, default='deepset')
-    parser.add_argument('--seed', type=int, default=1)
+    parser.add_argument('--envseed', type=int, default=1)
+    parser.add_argument('--modelseed', type=int, default=1)
     parser.add_argument('--num_episodes', type=int, default=500)
     parser.add_argument('--formula', type=str, default='(F blue) & (!blue U (green & F yellow))')  # !(red | green) U magenta  !blue U (magenta & red)
     parser.add_argument('--finite', action=argparse.BooleanOptionalAction, default=True)
@@ -26,25 +29,30 @@ def main():
     parser.add_argument('--deterministic', action=argparse.BooleanOptionalAction, default=True)
     args = parser.parse_args()
     gamma = 0.94 if args.env == 'LetterEnv-v0' else 0.998 if args.env == 'PointLtl2-v0' else 0.98
-    return simulate(args.env, gamma, args.exp, args.seed, args.num_episodes, args.formula, args.finite, args.render, args.deterministic)
+    return simulate(args.env, gamma, args.exp, args.envseed, args.modelseed, args.num_episodes, args.formula, args.finite, args.render, args.deterministic)
 
 
-def simulate(env, gamma, exp, seed, num_episodes, formula, finite, render, deterministic):
+def simulate(env, gamma, exp, envseed, modelseed, num_episodes, formula, finite, render, deterministic):
     env_name = env
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.random.manual_seed(seed)
+    random.seed(envseed)
+    np.random.seed(envseed)
+    torch.random.manual_seed(envseed)
 
     sampler = FixedSampler.partial(formula)
     env = make_env(env_name, sampler, render_mode='human' if render else None)
+    if env_name == 'PointLtlBiasTest0-v0' or env_name == 'PointLtl2-v0':
+        env_name = 'PointLtl2-v0'
     config = model_configs[env_name]
-    model_store = ModelStore(env_name, exp, seed, None)
+    model_store = ModelStore(env_name, exp, modelseed, None)
+    # model_store = ModelStore(env_name, exp, 10, None) 
+    
     training_status = model_store.load_training_status(map_location='cpu')
     model_store.load_vocab()
     model = build_model(env, training_status, config)
 
     props = set(env.get_propositions())
     search = ExhaustiveSearch(model, props, num_loops=2)
+    # search = ExhaustiveSearch(model, props, num_loops=1)
     agent = Agent(model, search=search, propositions=props, verbose=render)
 
     num_successes = 0
@@ -53,7 +61,7 @@ def simulate(env, gamma, exp, seed, num_episodes, formula, finite, render, deter
     steps = []
     rets = []
 
-    env.reset(seed=seed)
+    env.reset(seed=envseed)
 
     pbar = range(num_episodes)
     if not render:
@@ -101,11 +109,11 @@ def simulate(env, gamma, exp, seed, num_episodes, formula, finite, render, deter
         violation_rate = num_violations / num_episodes
         average_steps = np.mean(steps)
         adr = np.mean(rets)
-        print(f'{seed}: {success_rate:.3f},{violation_rate:.3f},{adr:.3f},{average_steps:.3f}')
+        print(f'{envseed}: {success_rate:.3f},{violation_rate:.3f},{adr:.3f},{average_steps:.3f}')
         return success_rate, average_steps
     else:
         average_visits = num_accepting_visits / num_episodes
-        print(f'{seed}: {average_visits:.3f}')
+        print(f'{envseed}: {average_visits:.3f}')
         return average_visits
 
 

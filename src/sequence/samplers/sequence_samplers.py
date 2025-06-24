@@ -1,4 +1,5 @@
 import random
+import numpy as np
 from pprint import pprint
 from typing import Callable
 
@@ -109,6 +110,38 @@ def all_reach_stay_tasks(num_stay: int) -> Callable[[list[str]], list[LDBASequen
 
     return wrapper
 
+import itertools
+def all_reach_avoid_stay_tasks(num_stay: int, num_avoid: tuple[int, int]) -> Callable[[list[str]], list[LDBASequence]]:
+    def wrapper(propositions: list[str]) -> list[LDBASequence]:
+        tasks = []
+        min_avoid, max_avoid = num_avoid
+
+        for p in propositions:
+            # Propositions that can be avoided (not including p)
+            available = [q for q in propositions if q != p]
+            
+            # Generate all valid avoid subsets based on num_avoid range
+            for na in range(min_avoid, max_avoid + 1):
+                for avoid_subset in itertools.combinations(available, na):
+                    reach = frozenset([Assignment.single_proposition(p, propositions).to_frozen()])
+                    
+                    avoid = frozenset([
+                        Assignment.single_proposition(q, propositions).to_frozen() for q in avoid_subset
+                    ])
+
+                    second_avoid = frozenset([
+                        Assignment.zero_propositions(propositions).to_frozen(),
+                        *[Assignment.single_proposition(q, propositions).to_frozen() for q in propositions if q != p]
+                    ])
+
+                    task = [(LDBASequence.EPSILON, avoid), (reach, second_avoid)]
+                    # task = [(LDBASequence.EPSILON, avoid), (reach, second_avoid), (reach, second_avoid)]
+
+                    tasks.append(LDBASequence(task, repeat_last=num_stay))
+
+        return tasks
+
+    return wrapper
 
 def sample_reach_stay(num_stay: int, num_avoid: tuple[int, int]) -> Callable[[list[str]], LDBASequence]:
     def wrapper(propositions: list[str]) -> LDBASequence:
@@ -123,6 +156,7 @@ def sample_reach_stay(num_stay: int, num_avoid: tuple[int, int]) -> Callable[[li
             *[Assignment.single_proposition(q, propositions).to_frozen() for q in propositions if q != p]
         ])
         task = [(LDBASequence.EPSILON, avoid), (reach, second_avoid)]
+        # task = [(LDBASequence.EPSILON, avoid), (reach, second_avoid), (reach, second_avoid)]
         return LDBASequence(task, repeat_last=num_stay)
 
     return wrapper
@@ -134,6 +168,53 @@ def fixed(sequence: LDBASequence) -> Callable[[list[str]], Callable[[], LDBASequ
 
     return wrapper
 
+def mixed_weights_uniform_gaussian(n: int, alpha: float, mu=0, sigma=None):
+    # Uniform weights
+    uniform = np.ones(n) / n
+
+    # Gaussian weights
+    start_index = int(np.ceil(n/2))
+    x = np.arange(-start_index, start_index)
+
+    if sigma is None:
+        sigma = n / 4  # decent spread
+
+    gaussian = np.exp(-0.5 * (x / sigma) ** 2)
+    
+    gaussians = np.zeros(n)
+    gaussians[0] = gaussian[start_index]
+    for i in range(1,start_index):
+      gaussians[2*i-1] = gaussian[start_index+i]
+      gaussians[2*i] = gaussian[start_index-i] 
+
+    gaussians = gaussians / np.sum(gaussians) # normalise
+    gaussians = np.roll(gaussians, mu) #shift the centre to mu
+
+    # Interpolate
+    mixed = (1 - alpha) * uniform + alpha * gaussians
+    return mixed
+
+def debias_sample_reach_stay(num_stay: int, num_avoid: tuple[int, int], n: int, alpha: float, mu=0, sigma=None) -> Callable[[list[str]], LDBASequence]:
+    def wrapper(propositions: list[str]) -> LDBASequence:
+        weights = mixed_weights_uniform_gaussian(n, alpha, mu, sigma)
+        # print(weights)
+        p = random.choices(propositions, weights=weights, k=1)[0]
+        # p = random.choice(propositions)
+        reach = frozenset([Assignment.single_proposition(p, propositions).to_frozen()])
+        na = random.randint(*num_avoid)
+        available = [q for q in propositions if q != p]
+        avoid = random.sample(available, na)
+        avoid = frozenset([Assignment.single_proposition(q, propositions).to_frozen() for q in avoid])
+        second_avoid = frozenset([
+            Assignment.zero_propositions(propositions).to_frozen(),
+            *[Assignment.single_proposition(q, propositions).to_frozen() for q in propositions if q != p]
+        ])
+        task = [(LDBASequence.EPSILON, avoid), (reach, second_avoid)]
+        return LDBASequence(task, repeat_last=num_stay)
+
+    return wrapper
 
 if __name__ == '__main__':
-    print(sample_reach_stay(100, (0, 2))(['a', 'b', 'c']))
+    # print(sample_reach_stay(100, (0, 2))(['a', 'b', 'c']))
+    for i in range(20):
+        print(debias_sample_reach_stay(60, (0, 2), 3, 0.9, mu=2)(['a', 'b', 'c']))

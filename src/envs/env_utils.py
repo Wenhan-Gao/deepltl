@@ -52,8 +52,10 @@ def make_env(
         # env = PartiallyOrderedWrapper(env, sample_task)
         env = LTLWrapper(env, sample_task)
         env = LDBAWrapper(env)
+        print('-'*20,'LTLWrapper used','-'*20)
     else:
         env = SequenceWrapper(env, sample_task)
+        print('-'*20,'Seqwrapper used','-'*20)
     env = TimeLimit(env, max_episode_steps=max_steps)
     env = RemoveTruncWrapper(env)
     return env
@@ -69,6 +71,8 @@ def make_safety_gym_env(name: str, render_mode: str | None = None):
     from envs.zones.safety_gym_wrapper import SafetyGymWrapper
 
     env = safety_gymnasium.make(name, render_mode=render_mode)
+    print('Env ID: ', env.spec.id)
+    print('Env Config: ', env.spec.kwargs['config'])
     env = SafetyGymWrapper(env)
     env = FlattenObservation(env)
     return env

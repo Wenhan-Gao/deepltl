@@ -2,8 +2,11 @@ import torch
 from torch import nn
 
 from model.ltl.set_network import SetNetwork
-from preprocessing import BatchedReachAvoidSequences, BatchedSequences
+# from preprocessing import BatchedReachAvoidSequences, BatchedSequences
+from typing import TYPE_CHECKING, Union
 
+if TYPE_CHECKING:
+    from preprocessing import BatchedReachAvoidSequences  # Imported only for type hints
 
 class LTLNet(nn.Module):
     def __init__(
@@ -20,8 +23,12 @@ class LTLNet(nn.Module):
                           batch_first=True)
         self.embedding_dim = 2 * embedding_dim
 
-    def forward(self, batched_seqs: tuple[tuple[torch.tensor, torch.tensor], tuple[torch.tensor, torch.tensor]]
-                                    | BatchedReachAvoidSequences) -> torch.tensor:
+    # def forward(self, batched_seqs: tuple[tuple[torch.tensor, torch.tensor], tuple[torch.tensor, torch.tensor]]
+    #                                 | BatchedReachAvoidSequences) -> torch.tensor:
+    def forward(self, batched_seqs: Union[tuple[tuple[torch.Tensor, torch.Tensor], tuple[torch.Tensor, torch.Tensor]], 
+                                           "BatchedReachAvoidSequences"]) -> torch.Tensor:
+
+        from preprocessing import BatchedReachAvoidSequences
         if isinstance(batched_seqs, BatchedReachAvoidSequences):
             (reach_lens, reach_data), (avoid_lens, avoid_data) = batched_seqs.all()
         else:

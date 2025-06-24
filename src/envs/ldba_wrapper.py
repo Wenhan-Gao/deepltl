@@ -30,7 +30,10 @@ class LDBAWrapper(gymnasium.Wrapper):
         if (action == LDBASequence.EPSILON).all():
             obs, reward, terminated, truncated, info = self.obs, 0.0, False, False, self.info
             take_epsilon = True
+            # print('-'*20,'Epsilon action applied','-'*20)
+            # print('Action:',action)
         else:
+            # print('action:',action)
             assert not (action == LDBASequence.EPSILON).any()
             obs, reward, terminated, truncated, info = super().step(action)
             take_epsilon = False

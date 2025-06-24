@@ -19,7 +19,8 @@ import seaborn as sns
 sns.set_theme(style='whitegrid')
 
 env_name = 'FlatWorld-v0'
-exp = 'deepset_complex'
+# exp = 'deepset_complex'
+exp = 'test'
 seed = 1
 
 random.seed(seed)

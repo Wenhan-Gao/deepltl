@@ -65,7 +65,8 @@ class Trainer:
             start = time.time()
             exps, logs = algo.collect_experiences()
             curriculum = get_env_attr(envs[0], 'sample_sequence').curriculum
-            curriculum.update_task_success(logs['avg_goal_success'], verbose=True)
+            # curriculum.update_task_success(logs['avg_goal_success'], verbose=True)
+            curriculum.update_task_success(logs['avg_goal_success'], logs['goal_counts'], verbose=True)
             update_logs = algo.update_parameters(exps)
             logs.update(update_logs)
             update_time = time.time() - start

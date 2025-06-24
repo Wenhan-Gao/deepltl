@@ -17,4 +17,7 @@ cache
 multiple_results/
 *.fish
 paper_utils
+*.png
+*.txt
+*.pdf
 

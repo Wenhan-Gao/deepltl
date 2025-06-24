@@ -71,7 +71,7 @@ def __combine(tasks, agents, max_episode_steps):
         # Vector inputs
         for robot_name in agents:
             if 'Ltl' in task_name:
-                if '.' in task_name:
+                if '.' in task_name:    
                     pre, post = task_name.split('.')
                     env_id = f'{robot_name}{pre}-{VERSION}.{post}'
                 else:
@@ -81,6 +81,8 @@ def __combine(tasks, agents, max_episode_steps):
 
             combined_config = copy.deepcopy(task_config)
             combined_config.update({'agent_name': robot_name})
+
+            # print('EnvID: ', env_id)
 
             __register_helper(
                 env_id=env_id,
@@ -123,7 +125,8 @@ def __combine(tasks, agents, max_episode_steps):
 # ----------------------------------------
 # LTL
 # ----------------------------------------
-ltl_tasks = {'Ltl0': {}, 'Ltl1': {}, 'Ltl2': {}, 'Ltl3': {}, 'Ltl2.fixed': {}}
+ltl_tasks = {'Ltl0': {}, 'Ltl1': {}, 'Ltl2': {}, 'Ltl3': {}, 'Ltl2.fixed': {},
+    'LtlBiasTest0': {}}
 __combine(ltl_tasks, robots, max_episode_steps=None)
 
 # ----------------------------------------

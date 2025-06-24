@@ -92,7 +92,7 @@ def draw_trajectories(zone_positions, paths, num_cols, num_rows):
         raise ValueError('Number of zone positions and paths must be the same')
     if num_cols * num_rows < len(zone_positions):
         raise ValueError('Number of zone positions exceeds the number of subplots')
-    fig = plt.figure(figsize=(20, 15))
+    fig = plt.figure(figsize=(20, 6))
     for i, (zone_poss, path) in enumerate(zip(zone_positions, paths)):
         ax = fig.add_subplot(num_rows, num_cols, i + 1, axes_class=FancyAxes, edgecolor='gray', linewidth=.5)
         setup_axis(ax)

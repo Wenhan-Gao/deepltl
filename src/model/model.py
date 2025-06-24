@@ -26,8 +26,14 @@ class Model(nn.Module):
         self.ltl_net = ltl_net
         self.env_net = env_net
         self.recurrent = False
+        # self.first = True
 
     def compute_embedding(self, obs):
+        # if self.first == True:
+        #     print(obs.features[0])
+        #     print('features shape:', obs.features.shape)
+        #     print('seq shape:', obs.seq.shape)
+        #     self.first = False
         env_embedding = self.env_net(obs.features) if self.env_net is not None else obs.features
         ltl_embedding = self.ltl_net(obs.seq)
         return torch.cat([env_embedding, ltl_embedding], dim=1)
@@ -48,6 +54,8 @@ def build_model(
     if len(VOCAB) <= 3:
         raise ValueError('VOCAB not initialized')
     obs_shape = env.observation_space['features'].shape
+    print('obs_features: ', env.observation_space['features'])
+    print('obs_shape: ', obs_shape)
     action_space = env.action_space
     action_dim = action_space.n if isinstance(action_space, gymnasium.spaces.Discrete) else action_space.shape[0]
     if model_config.env_net is not None:

@@ -1,2 +1,2 @@
-from .algos import PPO
 from .utils import DictList, ParallelEnv
+from .algos import PPO

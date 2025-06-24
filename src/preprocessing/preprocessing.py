@@ -2,13 +2,16 @@ from typing import Any
 
 import torch
 
-import torch_ac
+
+
 import numpy as np
 
 from ltl.automata import LDBASequence
 from ltl.logic import FrozenAssignment, Assignment
 from preprocessing.vocab import VOCAB
 from preprocessing.batched_sequences import BatchedReachAvoidSequences, ReachAvoidSet
+import torch_ac
+from torch_ac.utils.dictlist import DictList
 
 
 def preprocess_obss(obss: list[dict[str, Any]], propositions: set[str], device=None) -> torch_ac.DictList:

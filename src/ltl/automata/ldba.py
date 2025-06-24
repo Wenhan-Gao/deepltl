@@ -1,4 +1,5 @@
 import functools
+import random
 from collections import Counter
 from dataclasses import dataclass
 from typing import Optional
@@ -42,14 +43,36 @@ class LDBA:
     def get_next_state(self, state: int, propositions: set[str], take_epsilon=False) -> tuple[int, bool]:
         """Returns the next state and whether the taken transition is accepting,
            given the current state and the propositions that are true."""
+        assignment = Assignment({p: (p in propositions) for p in self.propositions}).to_frozen()
         if take_epsilon:
             eps_transitions = [t for t in self.state_to_transitions[state] if t.is_epsilon()]
-            if len(eps_transitions) > 1:
-                raise ValueError('More than one epsilon transition from a state is currently not supported.')
-            assert eps_transitions
-            t = eps_transitions[0]
+            if not eps_transitions:
+                raise ValueError(f"No epsilon transitions available from state {state}")
+
+
+            for t in eps_transitions:
+                next_state = t.target
+                for trans in self.state_to_transitions[next_state]:
+                    if not trans.is_epsilon() and assignment in trans.valid_assignments and trans.accepting:
+                        print('Found:', self.state_to_transitions[next_state])
+                        return t.target, t.accepting  # Return the matching epsilon transition
+
+            # Fallback: no satisfying accepting trans found — pick first epsilon
+            print('No accepting transition found, returning random epsilon transition')
+            t = random.choice(eps_transitions)
             return t.target, t.accepting
-        assignment = Assignment({p: (p in propositions) for p in self.propositions}).to_frozen()
+            # # if len(eps_transitions) > 1:
+            # #     print(eps_transitions)
+            # #     raise ValueError('More than one epsilon transition from a state is currently not supported.')
+            # # assert eps_transitions
+            # # t = eps_transitions[0]
+            # # random sample epsilon transition
+            # import random
+            # t = random.choice(eps_transitions)
+            # # t = eps_transitions[1]
+            # print('epsilon transition:', t)
+            # print('transitions from next state:', self.state_to_transitions[t.target])
+            # return t.target, t.accepting
         for transition in self.state_to_transitions[state]:
             if assignment in transition.valid_assignments:
                 return transition.target, transition.accepting
@@ -66,6 +89,7 @@ class LDBA:
         if not self.state_to_scc:
             self.compute_sccs()
         accepting_sccs = [scc for scc in self.state_to_scc.values() if scc.accepting]
+        # print("accepting sccs:", accepting_sccs)
         if len(accepting_sccs) > 1:
             return False
         scc = accepting_sccs[0]
@@ -254,6 +278,36 @@ class LDBA:
                     self.state_to_scc[state] = scc
 
         tarjan(self.initial_state)
+    #     print('Computed SCCs.')
+
+
+    # def __str__(self):
+    #     result = []
+    #     result.append(f"LDBA with {self.num_states} states and {self.num_transitions} transitions")
+    #     result.append(f"Initial State: {self.initial_state}")
+        
+    #     # Print states
+    #     result.append("\nStates:")
+    #     for state in self.states:
+    #         result.append(f"  - {state}" + (" (sink)" if state == self.sink_state else ""))
+
+    #     # Print transitions
+    #     result.append("\nTransitions:")
+    #     for state, transitions in self.state_to_transitions.items():
+    #         for transition in transitions:
+    #             result.append(f"  {state} --[{transition.label}]--> {transition.target} "
+    #                         f"{'(accepting)' if transition.accepting else ''}")
+
+    #     # Print SCCs
+    #     if self.state_to_scc:
+    #         result.append("\nStrongly Connected Components (SCCs):")
+    #         for scc in set(self.state_to_scc.values()):
+    #             result.append(f"  SCC with states {scc.states}, "
+    #                         f"{'accepting' if scc.accepting else 'non-accepting'}, "
+    #                         f"{'bottom' if scc.bottom else 'not bottom'}")
+
+    #     return "\n".join(result)
+
 
 
 @dataclass

@@ -236,6 +236,8 @@ class BaseAlgo(ABC):
         # Log some values
 
         keep = max(self.log_done_counter, self.num_procs)
+        
+        print('Task types succeeded:', len(self.goal_success))
 
         logs = {
             "return_per_episode": self.log_return[-keep:],
@@ -244,6 +246,8 @@ class BaseAlgo(ABC):
             "violation_per_episode": self.log_violation[-keep:],
             "num_steps": self.num_steps,
             "avg_goal_success": {k: float(v) / self.goal_counts[k] for k, v in self.goal_success.items()},
+            ##############################################################
+            "goal_counts": self.goal_counts,
         }
 
         self.log_done_counter = 0

@@ -21,6 +21,9 @@ def draw_ldba(ldba: LDBA, filename='ldba', fmt='pdf', view=True, positive_label=
     dot = 'digraph "" {\n'
     dot += 'rankdir=LR\n'
     dot += 'labelloc="t"\n'
+    dot += '  overlap=false\n'
+    dot += '  splines=true\n'
+    dot += '  ranksep=3.2\n'
     dot += 'node [shape="circle"]\n'
     dot += 'I [label="", style=invis, width=0]\n'
     dot += f'I -> {ldba.initial_state}\n'
@@ -32,7 +35,9 @@ def draw_ldba(ldba: LDBA, filename='ldba', fmt='pdf', view=True, positive_label=
         for transition in transitions:
             if not self_loops and transition.target == state:
                 continue
-            dot += f'{state} -> {transition.target} [label="{transition.label if not positive_label else transition.positive_label}"'
+            print('label: ', transition.positive_label)
+            # dot += f'{state} -> {transition.target} [label="{transition.label if not positive_label else transition.positive_label}"'
+            dot += f'{state} -> {transition.target} [label="{transition.label if not positive_label else " | ".join(seg for seg in transition.positive_label.split(" | ") if "&" not in seg)}"'
             if transition.accepting:
                 dot += f' color="{Color.ACCEPTING}"'
             dot += ']\n'
@@ -75,7 +80,8 @@ def construct_ldba(formula: str, simplify_labels: bool = False, prune: bool = Tr
 
 if __name__ == '__main__':
     props = {'red', 'magenta', 'blue', 'green', 'aqua', 'yellow', 'orange'}
-    f = 'F blue'
+    # f = 'F blue'
+    f = 'G F blue -> G F green'
 
     ldba = construct_ldba(f, simplify_labels=False, prune=True, ldba=True)
     print(f'Finite: {ldba.is_finite_specification()}')
