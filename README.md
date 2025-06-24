@@ -1,6 +1,6 @@
 # DeepLTL: Learning to Efficiently Satisfy Complex LTL Specifications
 
-This repository contains the code for the paper "DeepLTL: Learning to Efficiently Satisfy Complex LTL Specifications" submitted to ICLR 2025.
+This repository contains the adapted code originally from the paper "DeepLTL: Learning to Efficiently Satisfy Complex LTL Specifications" submitted to ICLR 2025. This repo is for my final year project at Imperial College London.
 
 ## Installation
 The code requires Python 3.10 with a working installation of PyTorch (tested with version 2.2.2). In order to use the _ZoneEnv_ environment, use the following command to install the required dependencies:
